@@ -8,7 +8,7 @@ import re
 from requests import Session
 from requests_html import HTML
 
-from zxxkdb import db, create_db, select_db, create_or_update
+from zxxkdb import db, select_db, create_or_update_info, create_or_update_album
 
 username = os.getenv('UN')
 password = os.getenv('PASSWORD')
@@ -152,16 +152,20 @@ class ZXXK:
         Return:
             donwload_url: 下载的直链, type: json
         '''
-        # 获取下载文件信息
-        info = self.get_info(url)
-        channelid = info['channelId']
-        displayprice = info['displayPrice'] #str
-        filetype = info['fileType']
-        intro = info['intro']
-        softid = info['softId']
-        softname = info['softName']
-        softsize = info['softSize']
-        updatetime = info['updateTime']
+        # 专辑id
+        if 'soft' not in url:
+            albumid = re.search('\w{6}', url).group(0)
+        else:
+            # 获取下载文件信息
+            info = self.get_info(url)
+            channelid = info['channelId']
+            displayprice = info['displayPrice'] #str
+            filetype = info['fileType']
+            intro = info['intro']
+            softid = info['softId']
+            softname = info['softName']
+            softsize = info['softSize']
+            updatetime = info['updateTime']
 
         # 获取下载链接
         info_ids = self.parse_id(url)
@@ -172,13 +176,17 @@ class ZXXK:
                 info_id = ','.join(info_ids[i: i+n])
                 url_d = self.download_url(info_id)
                 dict_id['Url'+ str(index)] = url_d
+            create_or_update_album(albumid=albumid, softids=info_ids, downloadurls=dict_id)
+        elif len(info_ids) > 1 and len(info_ids) <= 10:
+            url_d = self.download_url(info_ids)
+            dict_id['Url'] = url_d
+            create_or_update_album(albumid=albumid, softids=info_ids, downloadurls=dict_id)
         else:
             info_id = ','.join(info_ids)
             url_d = self.download_url(info_id)
             dict_id['Url'] = url_d
-        
-        # 保存到数据库
-        create_or_update(softid=softid, softname=softname, channelid=channelid, downloadurls=dict_id, displayprice=displayprice, filetype=filetype, intro=intro, softsize=softsize, updatetime=updatetime)
+            # 保存到数据库
+            create_or_update(softid=softid, softname=softname, channelid=channelid, downloadurls=dict_id, displayprice=displayprice, filetype=filetype, intro=intro, softsize=softsize, updatetime=updatetime)
 
         return json.dumps(dict_id)
 
@@ -233,7 +241,7 @@ if __name__ == '__main__':
     parser.add_argument('--info', '-i', action='store_true', help="文档信息")
     parser.add_argument('--login', action='store_true', help='登录')
     parser.add_argument('--durl', action='store_true', help='获取数据库中的下载链接！')
-    parser.add_argument('url', help="文档地址")
+    parser.add_argument('--url', help="文档地址")
     args = parser.parse_args()
 
     zxxk = ZXXK()

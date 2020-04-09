@@ -9,6 +9,14 @@ from playhouse.sqlite_ext import JSONField
 
 db = SqliteDatabase(os.getcwd() + '/zxxk.db')
 
+class ListField(Field):
+    field_type = 'list'
+    def db_value(self, value):
+        return ','.join(value)
+    def python_value(self, value):
+        return value.split(',')
+
+
 class BaseModel(Model):
     class Meta:
         database = db
@@ -27,6 +35,12 @@ class Info(BaseModel):
     downloadurls = JSONField(default={})
 
 
+class Album(BaseModel):
+    albumid = SmallIntegerField(primary_key=True)
+    softids = ListField()
+    downloadurls = JSONField(default={})
+
+
 def create_db(softid, softname, **kw):
     if db.is_closed() == True:
         db.connect()
@@ -35,7 +49,7 @@ def create_db(softid, softname, **kw):
     db.close()
 
 
-def create_or_update(softid, softname, **kw):
+def create_or_update_info(softid, softname, **kw):
     
     # 数据库是否打开
     if db.is_closed() == True:
@@ -52,14 +66,36 @@ def create_or_update(softid, softname, **kw):
         select_info = Info.create(softid=softid, softname=softname, **kw)
         db.close()
     return select_info
+
+
+def create_or_update_album(albumid, softids, **kw):
     
+    # 数据库是否打开
+    if db.is_closed() == True:
+        db.connect()
+
+    if not Album.table_exists():
+        db.create_tables([Album])
+    
+    try:
+        select_info= Album.select().where(Album.albumid == albumid).get()
+        Album.update(softids=softids, **kw).where(Album.albumid == albumid).execute()
+        db.close()
+    except:
+        select_info = Album.create(albumid=albumid, softids=softids, **kw)
+        db.close()
+    return select_info
+
 
 def select_db(softid):
     if db.is_closed() == True:
         db.connect()
     
     try:
-        info = Info.select().where(Info.softid == softid).get()
+        if len(softid) == 6:
+            info = Album.select().where(Album.softid == softid.split(',')).get()
+        elif len(softid) == 8:
+            info = Info.select().where(Info.softid == softid).get()
         db.close()
         return info
     except:
