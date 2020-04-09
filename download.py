@@ -231,8 +231,12 @@ class ZXXK:
         '''
         获取数据库中的url下载链接
         '''
-        info_id = re.search('\w{8}', url).group(0)
-        info = select_db(info_id)
+        try:
+            info_id = re.search('\w{8}', url).group(0)
+            info = select_db(info_id)
+        except:
+            info_id = re.search('\w{6}', url).group(0)
+            info = select_db(info_id)
         return json.dumps(info.downloadurls)
 
 
@@ -241,7 +245,7 @@ if __name__ == '__main__':
     parser.add_argument('--info', '-i', action='store_true', help="文档信息")
     parser.add_argument('--login', action='store_true', help='登录')
     parser.add_argument('--durl', action='store_true', help='获取数据库中的下载链接！')
-    parser.add_argument('--url', help="文档地址")
+    parser.add_argument('url', help="文档地址")
     args = parser.parse_args()
 
     zxxk = ZXXK()

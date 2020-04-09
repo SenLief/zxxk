@@ -93,7 +93,7 @@ def select_db(softid):
     
     try:
         if len(softid) == 6:
-            info = Album.select().where(Album.softid == softid.split(',')).get()
+            info = Album.select().where(Album.albumid == softid).get()
         elif len(softid) == 8:
             info = Info.select().where(Info.softid == softid).get()
         db.close()
