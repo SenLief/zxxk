@@ -10,7 +10,7 @@ from requests_html import HTML
 
 from zxxkdb import db, create_db, select_db, create_or_update
 
-username = os.getenv('USERNAME')
+username = os.getenv('UN')
 password = os.getenv('PASSWORD')
 
 
@@ -230,21 +230,21 @@ class ZXXK:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='获取学科网下载直链，需要账号支持！')
-    parser.add_argument('--info', '-i', help="文档信息")
-    parser.add_argument('--login', help='登录')
-    parser.add_argument('--durl', help='获取数据库中的下载链接！')
+    parser.add_argument('--info', '-i', action='store_true', help="文档信息")
+    parser.add_argument('--login', action='store_true', help='登录')
+    parser.add_argument('--durl', action='store_true', help='获取数据库中的下载链接！')
     parser.add_argument('url', help="文档地址")
     args = parser.parse_args()
 
     zxxk = ZXXK()
     if args.durl:
-        zxxk.get_url(args.url)
+        print(zxxk.get_url(args.url))
     elif args.info:
-        zxxk.get_info(args.url)
+        print(zxxk.get_info(args.url))
     elif args.login:
-        zxxk.login()   
+        print(zxxk.login())   
     else:
-        zxxk.download_urls(args.url)
+        print(zxxk.download_urls(args.url))
 
 
 
