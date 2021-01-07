@@ -10,7 +10,7 @@ fake-useragent==0.1.11
 idna==2.9
 ipython-genutils==0.2.0
 jedi==0.16.0
-lxml==4.5.0
+lxml==4.6.2
 parse==1.15.0
 parso==0.6.2
 peewee==3.13.2
